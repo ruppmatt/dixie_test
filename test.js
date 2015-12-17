@@ -148,5 +148,5 @@ function TryAgain(){
 }
 
 
-var db = setupStore();
+setupStore();
 try_file_read_write(db, '/tmp/fox.txt', 'The quick brown fox jumped over the lazy dog.');
