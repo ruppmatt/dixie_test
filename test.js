@@ -84,7 +84,16 @@ function display(text)
 }
 
 
-var db;  //Global for the sake of ease
+var db;
+var dom_fs_ready = false;
+var worker = new Worker('test_cc.js');
+
+onmessage = function(msg){
+    display('Received message from worker: ' + msg);
+    if (msg == 'wkr_fs_ready'){
+        try_read_file('/tmp/ipsum.txt');
+    }
+}
 
 /*
     Setup the database '/tmp' with indexable timestamp,
@@ -103,7 +112,6 @@ function setupStore() {
         FILE_DATA: ',timestamp,contents,mode'
     });
     db.open();
-    return db;
 }
 
 /*
@@ -115,7 +123,7 @@ function setupStore() {
 
     This example uses promises.
  */
-function try_file_read_write(db, path, contents) {
+function try_file_read_write(path, contents) {
     db.FILE_DATA.add(
         {
             timestamp: Date.now(),  //We may need to do more work with this property
@@ -128,11 +136,20 @@ function try_file_read_write(db, path, contents) {
         db.FILE_DATA.get(path).then(function(doc){
             var utf16 = utf8bytes_decode(doc.contents);
             display('Read from file ' + path + ' the contents: ' + utf16);
+            worker.send("dom_fs_ready");
         }).catch(function(e){
             display ('Unable to read from file ' + path)
         })
     }).catch(function () {
         display('Unable to add file ' + path);
+    });
+}
+
+function try_read_file(path){
+    db.FILE_DATA.get(path).then(function(doc)){
+        var utf16 = utf8bytes_decode(doc.contents);
+        display('Read from file: ' + path + ' the contents ' + utf16);
+    }).catch(function(e)){
     });
 }
 
@@ -149,4 +166,4 @@ function TryAgain(){
 
 
 setupStore();
-try_file_read_write(db, '/tmp/fox.txt', 'The quick brown fox jumped over the lazy dog.');
+try_file_read_write('/tmp/fox.txt', 'The quick brown fox jumped over the lazy dog.');
