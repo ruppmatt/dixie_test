@@ -1,6 +1,7 @@
 #include <fstream>
 #include <string>
 #include <emscripten.h>
+#include <iomanip>
 #include "json.hpp"
 using json = nlohmann::json;
 
@@ -22,10 +23,10 @@ void MountFS()
 }
 
 
-void SyncFS()
+void SyncFS(bool restore_from_db)
 {
-  EM_ASM(
-    FS.syncfs(false, function(err) {
+  EM_ASM_INT({
+    FS.syncfs(0 != $0, function(err) {
       if (err) {
         console.log("Unable to sync FS");
       }
@@ -33,7 +34,7 @@ void SyncFS()
         console.log("Sync'd FS");
       }
     }
-  ));
+  )}, static_cast<int>(restore_from_db));
 }
 
 
@@ -51,7 +52,7 @@ void ReadFile(const std::string& path)
     SyncFS();
     std::ifstream fin(path.c_str());
     string data;
-    fin >> data;
+    fin >> std::noskipws >> data;
     fin.close();
     SendMsg(data);
 }
