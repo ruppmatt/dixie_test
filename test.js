@@ -104,7 +104,7 @@ var worker = new Worker('test_cc.js');
 onmessage = function(msg){
     display('Received message from worker: ' + msg);
     if (msg == 'wkr_fs_ready'){
-        tryReadFile('/tmp/ipsum.txt');
+        tryFileEMSRead('/tmp/ipsum.txt');
     }
 }
 
@@ -136,14 +136,14 @@ function setupStore() {
 
     This example uses promises.
  */
-function tryFileReadWrite(path, contents) {
+function tryFileWriteEMSRead(path, contents) {
     db.FILE_DATA.add(
         {
             timestamp: Date.now(),  //We may need to do more work with this property
             contents: utf8bytes_encode(contents),
             mode: 33206
         },
-        path
+        path  //Since we're handling our keys ourselves, we need this second argument
     ).then(function () {
         display('Able to add file ' + path);
         db.FILE_DATA.get(path).then(function(doc){
@@ -158,7 +158,13 @@ function tryFileReadWrite(path, contents) {
     });
 }
 
-function tryReadFile(path){
+
+/*
+    Try to read a file stored from an emscripten
+    file write.  It's in a UTF8 byte array encoding,
+    so it needs to be converted back to a UTF16 string
+ */
+function tryEMSFileRead(path){
     db.FILE_DATA.get(path).then(function(doc)){
         var utf16 = utf8bytes_decode(doc.contents);
         display('Read from file: ' + path + ' the contents ' + utf16);
@@ -180,4 +186,4 @@ function tryAgain(){
 
 
 setupStore();
-tryReadWriteFile('/tmp/fox.txt', 'The quick brown fox jumped over the lazy dog.');
+tryFileWriteEMSWrite('/tmp/fox.txt', 'The quick brown fox jumped over the lazy dog.');
