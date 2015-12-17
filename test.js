@@ -3,6 +3,15 @@
  */
 
 
+
+// ---- Begin third-party code -----
+/* utf.js - UTF-8 <=> UTF-16 convertion
+ *
+ * Copyright (C) 1999 Masanao Izumo <iz@onicos.co.jp>
+ * Version: 1.0
+ * LastModified: Dec 25 1999
+ * This library is free.  You can redistribute it and/or modify it.
+ */
 function utf16to8(str) {
     var out, i, len, c;
 
@@ -57,6 +66,9 @@ function utf8to16(str) {
 
     return out;
 }
+// ---- End third-party code -----
+
+
 
 function utf8bytes_encode(str16){
     var bytes = []
