@@ -1,7 +1,7 @@
 CFLAGS :=  -g4 -pedantic -Wall -std=c++14 -Wno-dollar-in-identifier-extension
 
-EXPORT_FUNCS := -s EXPORTED_FUNCTIONS="['_main', '_RuntimeLoop', '_SyncFS']"
-EMTERP_WHITE := "['_main', '_RuntimeLoop', '_SyncFS']"
+EXPORT_FUNCS := -s EXPORTED_FUNCTIONS="['_main', '_RuntimeLoop', '_DoTests', '_SyncFS']"
+EMTERP_WHITE := "['_main', '_RuntimeLoop', '_DoTests', '_SyncFS']"
 EMTERPRETIFY_FLAGS := -s EMTERPRETIFY=1 -s EMTERPRETIFY_ASYNC=1 -s EMTERPRETIFY_WHITELIST=$(EMTERP_WHITE)
 JS_FLAGS := --pre-js prepend.js
 MEM_FLAGS := -s ALLOW_MEMORY_GROWTH=1

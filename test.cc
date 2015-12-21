@@ -184,26 +184,27 @@ bool ReadFile(const std::string& path)
     the call stack for sleeping.
 */
 extern "C"
-bool doTests()
+bool DoTests()
 {
-if (dom_fs_ready){
-    if (!SyncFS(true))
+    if (dom_fs_ready){
+        if (!SyncFS(true))
+            return false;
+        SendStatus();
+        if (!ReadFile(read_path))
         return false;
-    SendStatus();
-    if (!ReadFile(read_path))
-    return false;
-    SendStatus();
-    if (!WriteFile(write_path, contents))
-        return false;
-    SendStatus();
-    if (!ReadFile(write_path))
-        return false;
-    SendStatus();
-    if (!SyncFS(false))
-        return false;
-    SendStatus();
-    if (!SyncFS(false))
-        return false;
+        SendStatus();
+        if (!WriteFile(write_path, contents))
+            return false;
+        SendStatus();
+        if (!ReadFile(write_path))
+            return false;
+        SendStatus();
+        if (!SyncFS(false))
+            return false;
+        SendStatus();
+        if (!SyncFS(false))
+            return false;
+    }
     return true;
 }
 

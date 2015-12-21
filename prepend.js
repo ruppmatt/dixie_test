@@ -92,4 +92,3 @@ function fsBusy(){
 function fsReady(){
     return FS_STATUS === 0;
 }
-

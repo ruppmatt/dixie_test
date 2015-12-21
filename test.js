@@ -144,8 +144,12 @@ function processMessage(incoming_msg){
             display(msg.msg);
         } else if (msg.type === 'status') {
             if (msg.msg === 'wkr_fs_ready') {
-                display(msg.msg);
+                display('Worker states: ' + msg.msg);
+                //setupStore();
                 tryEMSFileRead(root_path + '/ipsum.txt');
+            }
+            else {
+                display('Unknown status message: ' + msg.msg);
             }
         }
         else {
@@ -170,7 +174,7 @@ function setupStore() {
         //use the Dexie index features with the properties listed.  Note that we cannot use
         //the key (the file path) as it is *not* listed as an indexable property (and is not stored
         //as a document property at all.
-        FILE_DATA: ',timestamp,contents,mode'
+        FILE_DATA: ''
     });
     db.open();
 }
@@ -220,11 +224,16 @@ function tryFileWriteEMSRead(path, contents) {
  */
 function tryEMSFileRead(path){
     global_pending++;
-    db.FILE_DATA.get(path).then(function(doc){
+    console.log('Reading ' + path);
+    var store = db.FILE_DATA;
+    console.log('Got store.');
+    store.get(path).then(function(doc){
+        console.log('Got path.')
         var utf16 = utf8bytes_decode(doc.contents);
         display('Read from file: ' + path + ' the contents ' + utf16);
         global_pending--;
     }).catch(function(e){
+        console.log('Could not open file.')
         display('Unable to read file ' + path);
         global_pending--;
     });
@@ -269,6 +278,22 @@ function ipsumWriting(k){
     }
 }
 
+/*
+    This will setup our test environment.  I'm encapsulating
+    it in a function to see whether or not I can get the
+    web worker fully loaded (and waiting) before the tests
+    are performed.
+ */
+function doTest() {
+    display('Setting up tests on the dom-side...')
+    setupStore();  // Setup our database and try to write and read from it...
+    tryEMSWriteFile(root_path + '/disco.txt', 'Amazingly few discotheques provide jukeboxes.');
+    ipsumWriting(10);
+    tryEMSFileRead(root_path + '/disco.txt');
+    tryFileWriteEMSRead(root_path + '/fox.txt', 'The quick brown fox jumped over the lazy dog.');
+    pendingTimer =  setInterval(checkPending, 10);
+}
+
 
 /*
     This function is used by the a setInterval timer
@@ -289,6 +314,11 @@ function checkPending(){
 // Our database (global for ease not wisdom)
 var db;
 
+// We need to be sure that we're done with all asynchronous operations before
+// letting our worker thread know.  This setInterval object will periodically check
+// to see if our operations are done.
+var pendingTimer;
+
 // A count of pending objects; read and write operations increment and decrement
 // this value when they start and end, respectively
 var global_pending = 0;
@@ -296,13 +326,7 @@ var global_pending = 0;
 var root_path = '/test';  // The virtual path we are writing into
 var worker = new Worker('test_cc.js');  // Launch a worker using the code in test_cc.js (emscripten-generated)
 worker.onmessage = processMessage;  // Send received messages from the worker through processMessage the function
-setupStore();  // Setup our database and try to write and read from it...
-tryEMSWriteFile(root_path + '/disco.txt', 'Amazingly few discotheques provide jukeboxes.');
-ipsumWriting(10);
-tryFileWriteEMSRead(root_path + '/fox.txt', 'The quick brown fox jumped over the lazy dog.');
+
+var testTimer = setTimeout(doTest, 1500);  // We're going to wait 1 second to get our worker ready before we do our tests
 
 
-// We need to be sure that we're done with all asynchronous operations before
-// letting our worker thread know.  This setInterval object will periodically check
-// to see if our operations are done.
-var pendingTimer =  setInterval(checkPending, 10);
