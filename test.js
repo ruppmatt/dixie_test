@@ -67,43 +67,34 @@ function processMessage(incoming_msg){
     are performed.
  */
 function doTest() {
-    display('Setting up tests on the dom-side...')
-    setupStore();  // Setup our database and try to write and read from it...
-    tryEMSWriteFile(root_path + '/disco.txt', 'Amazingly few discotheques provide jukeboxes.');
-    ipsumWriting(10);
-    tryEMSFileRead(root_path + '/disco.txt');
-    tryFileWriteEMSRead(root_path + '/fox.txt', 'The quick brown fox jumped over the lazy dog.');
-    pendingTimer =  setInterval(checkPending, 10);
+    fs.mount('/test').then(function() {
+        display('Successfully mounted directory.');
+        fs.write(root_path + '/disco.txt', 'Amazingly few discotheques provide jukeboxes.')
+            .then(function (result) {
+                    display('Wrote disco.txt')
+                },
+                function (err) {
+                    display('Cannot write disco.txt')
+                });
+        fs.read(root_path + '/disco.txt')
+            .then(function (result) {
+                    display('Read disco.txt' + result)
+                },
+                function (err) {
+                    display('Cannot read disco.txt')
+                });
+        fs.write(root_path + '/fox.txt', 'The quick brown fox jumped over the lazy dog.')
+            .then(function (result) {
+                    display('Wrote disco.txt')
+                },
+                function (err) {
+                    display('Cannot write fox.txt')
+                });
+    }, function(err) {display('Something unhandled happened.  Mounting perhaps?');}
+    );
 }
 
 
-/*
-    This function is used by the a setInterval timer
-    to wait until all pending events are done before
-    letting the worker thread know that the file system
-    is available.
- */
-function checkPending(){
-    display('' + global_pending + ' pending events.');
-    if (global_pending == 0){
-        worker.postMessage({type:'status', msg:'dom_fs_ready'});
-        display('Telling worker FS is ready.');
-        clearInterval(pendingTimer);
-    }
-}
-
-
-// Our database (global for ease not wisdom)
-var db;
-
-// We need to be sure that we're done with all asynchronous operations before
-// letting our worker thread know.  This setInterval object will periodically check
-// to see if our operations are done.
-var pendingTimer;
-
-// A count of pending objects; read and write operations increment and decrement
-// this value when they start and end, respectively
-var global_pending = 0;
 
 var root_path = '/test';  // The virtual path we are writing into
 var worker = new Worker('test_cc.js');  // Launch a worker using the code in test_cc.js (emscripten-generated)
