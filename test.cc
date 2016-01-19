@@ -3,7 +3,7 @@
 #include <emscripten.h>
 #include <iomanip>
 #include <sstream>
-#include "json.hpp"
+#include "third-party/json.hpp"
 using json = nlohmann::json;
 
 
